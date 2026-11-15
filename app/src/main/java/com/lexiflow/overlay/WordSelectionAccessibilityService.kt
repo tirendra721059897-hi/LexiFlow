@@ -1,8 +1,8 @@
-
 package com.lexiflow.overlay
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
+import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 
 class WordSelectionAccessibilityService : AccessibilityService() {
@@ -11,6 +11,7 @@ class WordSelectionAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED) return
+        if (!Settings.canDrawOverlays(this)) return
 
         val source = event.source ?: return
         val fullText = source.text?.toString() ?: return
@@ -23,11 +24,15 @@ class WordSelectionAccessibilityService : AccessibilityService() {
 
             if (selectedWord.length in 2..30 && selectedWord != lastLookedUpWord) {
                 lastLookedUpWord = selectedWord
-                val intent = Intent(this, OverlayDictionaryService::class.java).apply {
-                    action = OverlayDictionaryService.ACTION_SHOW_WORD
-                    putExtra("WORD", selectedWord)
+                try {
+                    val intent = Intent(this, OverlayDictionaryService::class.java).apply {
+                        action = OverlayDictionaryService.ACTION_SHOW_WORD
+                        putExtra("WORD", selectedWord)
+                    }
+                    startService(intent)
+                } catch (_: Exception) {
+                    // Prevents crash if background service hasn't been started yet
                 }
-                startService(intent)
             }
         }
     }
