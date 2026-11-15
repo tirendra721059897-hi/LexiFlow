@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LexiFlow</string>
+    <string name="accessibility_service_description">Detects highlighted words on screen to display instant definitions.</string>
+</resources>
