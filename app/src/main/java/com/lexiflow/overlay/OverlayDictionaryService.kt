@@ -4,6 +4,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
@@ -30,20 +32,43 @@ class OverlayDictionaryService : Service() {
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_SHOW_WORD = "ACTION_SHOW_WORD"
+        const val ACTION_SHOW_WORD_FORCE = "ACTION_SHOW_WORD_FORCE"
         const val CHANNEL_ID = "lexiflow_bg_channel"
     }
 
     private lateinit var windowManager: WindowManager
+    private lateinit var clipboardManager: ClipboardManager
     private var bottomCardView: View? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var offlineDictionary: Map<String, String> = emptyMap()
     private var isServiceActive = false
+    private var lastClipboardWord = ""
+
+    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+        if (!isServiceActive) return@OnPrimaryClipChangedListener
+        val clip = clipboardManager.primaryClip ?: return@OnPrimaryClipChangedListener
+        if (clip.itemCount > 0) {
+            val copiedText = clip.getItemAt(0).text?.toString()?.trim() ?: return@OnPrimaryClipChangedListener
+            val cleanWord = copiedText.replace(Regex("[^a-zA-Z-]"), "")
+            if (cleanWord.length in 2..30 && !copiedText.contains(" ") && cleanWord != lastClipboardWord) {
+                lastClipboardWord = cleanWord
+                showBottomDefinitionCard(cleanWord)
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.addPrimaryClipChangedListener(clipboardListener)
         createNotificationChannel()
         offlineDictionary = loadOfflineDictionary()
+    }
+
+    override fun onDestroy() {
+        clipboardManager.removePrimaryClipChangedListener(clipboardListener)
+        super.onDestroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -63,6 +88,12 @@ class OverlayDictionaryService : Service() {
                 val word = intent.getStringExtra("WORD") ?: return START_NOT_STICKY
                 showBottomDefinitionCard(word)
             }
+            ACTION_SHOW_WORD_FORCE -> {
+                isServiceActive = true
+                startAsForeground()
+                val word = intent.getStringExtra("WORD") ?: return START_NOT_STICKY
+                showBottomDefinitionCard(word)
+            }
         }
         return START_STICKY
     }
@@ -77,7 +108,7 @@ class OverlayDictionaryService : Service() {
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("LexiFlow Reader Active")
-            .setContentText("Highlight any word on screen for instant meaning")
+            .setContentText("Select, tap Define, or Copy any word for meaning")
             .setSmallIcon(android.R.drawable.ic_menu_info_details)
             .addAction(android.R.drawable.ic_media_pause, "Stop", stopPendingIntent)
             .setOngoing(true)
