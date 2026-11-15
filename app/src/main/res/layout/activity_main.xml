@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_vertical"
+    android:background="#F8FAFC">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LexiFlow Reader"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#0F172A"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Highlight any word in any app to view its meaning at the bottom of your screen."
+        android:textSize="14sp"
+        android:textColor="#475569"
+        android:layout_marginBottom="28dp" />
+
+    <Button
+        android:id="@+id/btnOverlayPerm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. Grant Overlay Permission"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnAccessibilityPerm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2. Enable Text Selection Service"
+        android:layout_marginBottom="28dp" />
+
+    <Button
+        android:id="@+id/btnStartService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start Background Reader"
+        android:backgroundTint="#16A34A"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnStopService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stop Background Reader"
+        android:backgroundTint="#DC2626"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>
